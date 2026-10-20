@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Chatbot Demo — Your Business</title>
+<style>
+  :root { --bg:#0f172a; --card:#1e293b; --accent:#38bdf8; --text:#e2e8f0; --muted:#94a3b8; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:system-ui,-apple-system,sans-serif; background:var(--bg); color:var(--text);
+         display:flex; justify-content:center; align-items:center; min-height:100vh; padding:16px; }
+  .chat { width:100%; max-width:420px; height:600px; max-height:90vh; background:var(--card);
+          border-radius:16px; display:flex; flex-direction:column; overflow:hidden;
+          box-shadow:0 20px 60px rgba(0,0,0,.5); }
+  .header { padding:14px 18px; background:#0b1220; border-bottom:1px solid #334155; }
+  .header h2 { font-size:16px; }
+  .header p { font-size:12px; color:var(--muted); margin-top:2px; }
+  .online { display:inline-block; width:8px; height:8px; border-radius:50%; background:#4ade80; margin-right:6px; }
+  #msgs { flex:1; overflow-y:auto; padding:16px; display:flex; flex-direction:column; gap:10px; }
+  .msg { max-width:80%; padding:10px 14px; border-radius:14px; font-size:14px; line-height:1.45; }
+  .bot { background:#334155; align-self:flex-start; border-bottom-left-radius:4px; }
+  .user { background:var(--accent); color:#0b1220; align-self:flex-end; border-bottom-right-radius:4px; }
+  .row { display:flex; gap:8px; padding:12px; border-top:1px solid #334155; }
+  #input { flex:1; padding:10px 14px; border-radius:20px; border:1px solid #475569;
+           background:#0b1220; color:var(--text); font-size:14px; outline:none; }
+  button { padding:10px 18px; border-radius:20px; border:none; background:var(--accent);
+           color:#0b1220; font-weight:600; cursor:pointer; font-size:14px; }
+  .handoff { display:flex; gap:8px; margin-top:8px; }
+  .handoff a { flex:1; text-align:center; padding:8px; border-radius:10px; font-size:13px;
+               text-decoration:none; font-weight:600; }
+  .wa { background:#25D366; color:#062b16; } .mail { background:#475569; color:#fff; }
+</style>
+</head>
+<body>
+<div class="chat">
+  <div class="header">
+    <h2><span class="online"></span><span id="bizName">Your Business</span> Assistant</h2>
+    <p>AI demo — answers FAQs, captures leads, hands off to a human</p>
+  </div>
+  <div id="msgs"></div>
+  <div class="row">
+    <input id="input" placeholder="Ask a question…" autocomplete="off">
+    <button onclick="send()">Send</button>
+  </div>
+</div>
+
+<script>
+/* ============ EDIT THIS PER CLIENT ============ */
+const CONFIG = {
+  businessName: "Your Business",
+  whatsapp: "",        // e.g. "919876543210" — leave empty to hide WhatsApp button
+  email: "hello@example.com",
+  faqs: [
+    { q: "What are your opening hours?", a: "We're open Monday to Saturday, 9 AM to 8 PM.", k: ["hours","open","timing","when"] },
+    { q: "What services do you offer?", a: "We offer web design, AI chatbots, and digital marketing. Ask me about any of them!", k: ["services","offer","do you do","what do"] },
+    { q: "How much does a website cost?", a: "Basic sites start at $300, e-commerce at $800. Share your requirements for an exact quote.", k: ["price","cost","much","quote","pricing"] },
+    { q: "Where are you located?", a: "We're based in Greater Noida and work with clients worldwide, fully remote.", k: ["where","location","address","based"] },
+    { q: "How do I contact you?", a: "You can reach us on WhatsApp or email — tap a button below and we'll take it from there.", k: ["contact","phone","call","email","reach"] }
+  ],
+  fallback: "I don't have that answer yet — but I can connect you with the team, or leave your details below and we'll get back within a day."
+};
+/* =============================================== */
+
+document.getElementById("bizName").textContent = CONFIG.businessName;
+const msgs = document.getElementById("msgs");
+const input = document.getElementById("input");
+let leadStep = 0, lead = {};
+
+function addMsg(text, cls, html) {
+  const d = document.createElement("div");
+  d.className = "msg " + cls;
+  if (html) d.innerHTML = text; else d.textContent = text;
+  msgs.appendChild(d); msgs.scrollTop = msgs.scrollHeight;
+}
+
+function handoffHTML() {
+  let h = '<div class="handoff">';
+  if (CONFIG.whatsapp) h += `<a class="wa" href="https://wa.me/${CONFIG.whatsapp}" target="_blank">WhatsApp us</a>`;
+  h += `<a class="mail" href="mailto:${CONFIG.email}">Email us</a></div>`;
+  return h;
+}
+
+function matchFAQ(text) {
+  const t = text.toLowerCase();
+  let best = null, bestScore = 0;
+  for (const f of CONFIG.faqs) {
+    let s = 0;
+    for (const k of f.k) if (t.includes(k)) s += k.length;
+    if (s > bestScore) { bestScore = s; best = f; }
+  }
+  return bestScore > 0 ? best : null;
+}
+
+function botReply(userText) {
+  const t = userText.toLowerCase().trim();
+
+  // Lead-capture flow
+  if (leadStep === 1) { lead.name = userText; leadStep = 2;
+    setTimeout(() => addMsg(`Thanks ${lead.name}! What's the best email to reach you?`, "bot"), 400); return; }
+  if (leadStep === 2) { lead.email = userText; leadStep = 0;
+    setTimeout(() => addMsg(`Got it — ${lead.name}, we'll reach out to ${lead.email} within a day. Or talk to us right now:`, "bot"), 400);
+    setTimeout(() => addMsg(handoffHTML(), "bot", true), 700); return; }
+
+  if (/^(hi|hello|hey|namaste)\b/.test(t)) {
+    setTimeout(() => addMsg(`Hi! I'm the ${CONFIG.businessName} assistant. Ask me about services, pricing, hours — or type "human" to talk to the team.`, "bot"), 400); return; }
+  if (t.includes("human") || t.includes("agent") || t.includes("person")) {
+    setTimeout(() => addMsg(`Connecting you to the team now:`, "bot"), 400);
+    setTimeout(() => addMsg(handoffHTML(), "bot", true), 700); return; }
+  if (t.includes("lead") || t.includes("quote") || t.includes("interested")) {
+    leadStep = 1;
+    setTimeout(() => addMsg("Great! I just need two quick details. What's your name?", "bot"), 400); return; }
+
+  const f = matchFAQ(t);
+  if (f) { setTimeout(() => addMsg(f.a, "bot"), 400); return; }
+
+  setTimeout(() => addMsg(CONFIG.fallback, "bot"), 400);
+  setTimeout(() => addMsg("Want a custom quote? Type <b>interested</b> and I'll take your details.", "bot", true), 900);
+}
+
+function send() {
+  const v = input.value.trim();
+  if (!v) return;
+  addMsg(v, "user"); input.value = "";
+  botReply(v);
+}
+input.addEventListener("keydown", e => { if (e.key === "Enter") send(); });
+
+setTimeout(() => addMsg(`Hi! I'm the ${CONFIG.businessName} assistant. Ask me anything — hours, services, pricing.`, "bot"), 500);
+</script>
+</body>
+</html>
