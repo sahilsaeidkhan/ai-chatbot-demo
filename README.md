@@ -1,17 +1,33 @@
-# Chatbot demo (single-file template)
+# Website Chatbot — a small demo
 
-`index.html` is a self-contained, no-backend chatbot demo — open it in any browser, or host it anywhere (GitHub Pages, Netlify, Vercel).
+A little chatbot widget I built for business websites. It sits on the page, answers the questions visitors ask again and again — timings, prices, services — takes a name and email when someone wants a quote, and hands the chat over to WhatsApp or email the moment it gets stuck.
 
-## Customize per client in ~2 minutes
-1. Edit the `CONFIG` block at the top of the `<script>`:
-   - `businessName`, `whatsapp` (digits only, e.g. "919876543210"), `email`
-   - `faqs`: replace with 5–8 real Q&As scraped from the client's website; `k` = keyword triggers
-2. Save, screenshot/screen-record it, and send the link in the gig DM.
+No backend, no build step. It's one HTML file, and I kept it that way on purpose: it loads instantly, costs nothing to run, and drops into an existing website in minutes.
+
+**Try it live:** https://sahilsaeidkhan.github.io/ai-chatbot-demo/
 
 ## What it does
-- Answers FAQs with simple keyword matching
-- Lead capture flow ("interested" → asks name → asks email)
-- Human handoff: WhatsApp + email buttons when it can't answer
 
-Built 2026-10-20 as a reusable demo asset — backs the free-mini-demo offer made to
-Mitesh Garg and fills the standing gap (no chatbot demo existed in his 22 public repos).
+- Answers common questions straight from a FAQ list you control
+- Lead capture — a visitor types "interested" and it politely takes their name and email
+- Human handoff — WhatsApp and email buttons show up whenever the bot can't answer, so a real conversation never dies inside a bot
+- Works on phones, zero dependencies, nothing to install
+
+## Make it yours
+
+Open `index.html` and find the `CONFIG` block near the top of the script. Add your business name, contact email, a WhatsApp number if you want that button, and your own questions and answers. Save the file, put it on your site — that's genuinely all there is to it.
+
+## Why keyword matching?
+
+Honest answer: on a small business website, almost every question is one of the same ten questions. A small, predictable matcher answers those instantly and never invents a price or a timing. For anything beyond that, it hands over to a human instead of making things up — which is exactly the behaviour I'd want on my own website.
+
+## Where it could go next
+
+- Send captured leads straight to an inbox or CRM
+- Optional AI fallback for open-ended questions
+- Hindi + English replies
+
+---
+
+Built by Sahil Saeid — I make chatbots and small AI tools for businesses.
+GitHub: https://github.com/sahilsaeidkhan
